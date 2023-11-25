@@ -30,8 +30,8 @@ public:
     void setTimerSpec(uint32_t,uint32_t);
     void waitTimer();
     void startTimer();
-    void tick();
-    double tock();
+    void stopTimer();
+    void startSingleShotTimer(uint32_t, uint32_t);
     virtual ~cTimer();
 };
 
