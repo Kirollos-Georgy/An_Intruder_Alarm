@@ -5,7 +5,7 @@ Sensor::Sensor() {
     type = "";
 }
 
-Sensor::Sensor(String type) {
+Sensor::Sensor(string type) {
     isTriggered = false;
     this->type = type;
 }

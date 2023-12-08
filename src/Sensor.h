@@ -2,8 +2,9 @@
 #define AN_INTRUDER_ALARM_SENSOR_H
 
 #include <iostream>
+#include <string>
 
-using namespace std
+using namespace std;
 
 class Sensor {
 private:
@@ -12,7 +13,7 @@ private:
 
 public:
     Sensor();
-    Sensor(String type);
+    Sensor(string type);
 
     void trigger();
     void reset();
