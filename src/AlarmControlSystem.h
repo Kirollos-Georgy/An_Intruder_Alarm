@@ -20,9 +20,14 @@ private:
     const int MAXIMUM_DURATION_FOR_ENTERING_THE_CODE = 20;
     const int SIREN_DURATION = 5*60;
 
+    string partialCode;
+
     bool isArmed;
     bool alarmTriggered;
     bool leftBuildingAfterReset;
+    bool requiresAuthorityToDisarm;
+    bool disarmTimerStarted;
+
     string disarmCode;
     vector<Sensor*> sensors;
 
@@ -42,16 +47,26 @@ private:
     uint32_t disarmTimerSec = RESETTING_ALARM_TIME;
     uint32_t disarmTimerMsec = 0;
 
+    cTimer codeEntryTimer;
+    uint32_t codeEntryTimerSec = MAXIMUM_DURATION_FOR_ENTERING_THE_CODE;
+    uint32_t codeEntryTimerMsec = 0;
+
+    cTimer sirenDurationTimer;
+    uint32_t sirenDurationTimerSec = SIREN_DURATION;
+    uint32_t sirenDurationTimerMsec = 0;
+
     thread settingAlarmThread;
     thread triggeringAlarmThread;
     thread reentryTimerThread;
     thread disarmTimerThread;
+    thread codeEntryTimerThread;
+    thread sirenDurationTimerThread;
 
 public:
     AlarmControlSystem();
 
-    void armSystem(const string& disarmCode);
-    void disarmSystem(const string& disarmCode);
+    void armSystem(const char digit);
+    void disarmSystem(const char digit);
 
     void checkSensors();
     void triggerAlarm();
@@ -60,8 +75,12 @@ public:
 
     void resetSystem();
 
+    void handleSirenTimer();
+
     void startTimerThreads();
     void joinTimerThreads();
+
+    void authorityDisarmSystem();
 
 };
 
