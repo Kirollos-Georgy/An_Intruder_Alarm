@@ -1,67 +1,102 @@
 #include "cTimer.h"
 
 cTimer::cTimer(uint32_t sec, uint32_t msec) {
-    channel_id = ChannelCreate(0);
-    connection_id = ConnectAttach(0, 0, channel_id, 0, 0);
-    if (connection_id == -1) {
+    initial_sec = sec;
+    initial_nsec = msec * 1000000;
+    channelId = ChannelCreate(0);
+    connectionId = ConnectAttach(0, 0, channelId, 0, 0);
+    if (connectionId == -1) {
         std::cerr << "Timer, Connect Attach error : " << errno << "\n";
     }
 
-    SIGEV_PULSE_INIT(&sig_event, connection_id, SIGEV_PULSE_PRIO_INHERIT, 1, 0);
+    SIGEV_PULSE_INIT(&sigEvent, connectionId, SIGEV_PULSE_PRIO_INHERIT, 1, 0);
 
     //Create timer
-    if (timer_create(CLOCK_REALTIME, &sig_event, &timer_id) == -1) {
+    if (timer_create(CLOCK_REALTIME, &sigEvent, &timerId) == -1) {
         std::cerr << "Timer, Init error : " << errno << "\n";
     }
 
     setTimerSpec(sec, 1000000 * msec);
 
-    cycles_per_sec = SYSPAGE_ENTRY(qtime)->cycles_per_sec;
+    cyclesPerSec = SYSPAGE_ENTRY(qtime)->cycles_per_sec;
+
+    isTimerRunning = false;
+    isTimerExpired = false;
 }
 
 cTimer::~cTimer() {
-    timer_delete(timer_id);
-    ConnectDetach(connection_id);
-    ChannelDestroy(channel_id);
+    timer_delete(timerId);
+    ConnectDetach(connectionId);
+    ChannelDestroy(channelId);
 }
 
 void cTimer::setTimerSpec(uint32_t sec, uint32_t nano) {
-    timer_spec.it_value.tv_sec = sec;
-    timer_spec.it_value.tv_nsec = nano;
-    timer_spec.it_interval.tv_sec = sec;
-    timer_spec.it_interval.tv_nsec = nano;
+    initial_sec = sec;
+    initial_nsec = nano;
+    timerSpec.it_value.tv_sec = sec;
+    timerSpec.it_value.tv_nsec = nano;
+    timerSpec.it_interval.tv_sec = sec;
+    timerSpec.it_interval.tv_nsec = nano;
 
     //Start timer
-    timer_settime(timer_id, 0, &timer_spec, NULL);
+    timer_settime(timerId, 0, &timerSpec, NULL);
 }
 
 void cTimer::startTimer() {
-    timer_settime(timer_id, 0, &timer_spec, NULL);
+	isTimerRunning = true;
+	isTimerExpired = false;
+	timer_settime(timerId, 0, &timerSpec, NULL);
 }
 
 void cTimer::stopTimer() {
-    // Set the timer_spec values to 0 to stop the timer
-    timer_spec.it_value.tv_sec = 0;
-    timer_spec.it_value.tv_nsec = 0;
-    timer_spec.it_interval.tv_sec = 0;
-    timer_spec.it_interval.tv_nsec = 0;
+	isTimerRunning = false;
+    timerSpec.it_value.tv_sec = 0;
+    timerSpec.it_value.tv_nsec = 0;
+    timerSpec.it_interval.tv_sec = 0;
+    timerSpec.it_interval.tv_nsec = 0;
 
-    timer_settime(timer_id, 0, &timer_spec, NULL)
+    timer_settime(timerId, 0, &timerSpec, NULL);
 }
 
 void cTimer::waitTimer() {
+	struct _pulse pulse;
     int rcvid;
-    rcvid = MsgReceive(channel_id, &msg_buffer, sizeof(msg_buffer), NULL);
+    rcvid = MsgReceive(channelId, &pulse, sizeof(pulse), NULL);
+
+    if (rcvid == 0 && pulse.code == 1) {
+    	isTimerExpired = true;
+        isTimerRunning = false;
+    }
 }
 
 void cTimer::startSingleShotTimer(uint32_t sec, uint32_t nsec) {
-    timer_spec.it_value.tv_sec = sec;
-    timer_spec.it_value.tv_nsec = nsec;
-    timer_spec.it_interval.tv_sec = 0; // Zero means it's a single-shot timer
-    timer_spec.it_interval.tv_nsec = 0;
+	isTimerRunning = true;
+	isTimerExpired = false;
+    timerSpec.it_value.tv_sec = sec;
+    timerSpec.it_value.tv_nsec = nsec;
+    timerSpec.it_interval.tv_sec = 0; // Zero means it's a single-shot timer
+    timerSpec.it_interval.tv_nsec = 0;
 
-    if (timer_settime(timer_id, 0, &timer_spec, NULL) == -1) {
+    if (timer_settime(timerId, 0, &timerSpec, NULL) == -1) {
         std::cerr << "Timer, Set time error: " << strerror(errno) << std::endl;
         // Consider throwing an exception or returning an error code here
     }
+}
+
+void cTimer::restartSingleShorTImer() {
+    timerSpec.it_value.tv_sec = initial_sec;
+    timerSpec.it_value.tv_nsec = initial_nsec;
+    timer_settime(timerId, 0, &timerSpec, NULL);
+}
+
+bool cTimer::isExpired() {
+    if (isTimerExpired) {
+        isTimerExpired = false;
+        return true;
+    }
+    return false;
+}
+
+bool cTimer::isRunning() {
+    return isTimerRunning;
 }

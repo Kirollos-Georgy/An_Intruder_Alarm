@@ -8,6 +8,15 @@
 #include <sys/siginfo.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <time.h>
+#include <errno.h>
+#include <pthread.h>
+#include <sync.h>
+#include <sys/netmgr.h>
+#include <sys/syspage.h>
+#include <inttypes.h>
+#include <stdint.h>
 
 class cTimer {
 private:
@@ -15,7 +24,7 @@ private:
     int connectionId;
 
     struct sigevent sigEvent;
-    struct timerspec timerSpec;
+    struct itimerspec timerSpec;
     timer_t timerId;
 
     char msgBuffer[100];
@@ -23,6 +32,12 @@ private:
     uint64_t cyclesPerSec;
     uint64_t tickCycles;
     uint64_t tookCycles;
+
+    uint32_t initial_sec;
+    uint32_t initial_nsec;
+
+    bool isTimerRunning;
+    bool isTimerExpired;
 
 public:
     cTimer(uint32_t,uint32_t);
@@ -32,6 +47,11 @@ public:
     void startTimer();
     void stopTimer();
     void startSingleShotTimer(uint32_t, uint32_t);
+    void restartSingleShorTImer();
+
+    bool isExpired();
+    bool isRunning();
+
     virtual ~cTimer();
 };
 
