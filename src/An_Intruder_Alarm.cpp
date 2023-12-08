@@ -23,48 +23,79 @@ int main() {
     alarmSystem.addSensor(nominatedExit);
 
     thread sensorCheckThread(sensorCheckLoop, ref(alarmSystem));
-    alarmSystem.startTimerThreads();
+	alarmSystem.startTimerThreads();
 
     auto runScenario = [&](std::function<void()> scenario) {
     	alarmSystem.resetSystem();
-        entry1->reset();
-        nominatedExit->reset();
         scenario();
         this_thread::sleep_for(chrono::seconds(5)); // Wait for scenario to process
         cout << endl;
+        alarmSystem.resetSystem();
     };
 
-    /*runScenario([&] {
+    cout << "Starting the test cases" << endl;
+    cout << endl;
+
+    runScenario([&] {
     	cout << "Scenario 1: Arming and leaving the building within 30 seconds" << endl;
-    	alarmSystem.armSystem("1234");
+        alarmSystem.armSystem('1');
+        alarmSystem.armSystem('2');
+        alarmSystem.armSystem('3');
+        alarmSystem.armSystem('4');
     	this_thread::sleep_for(chrono::seconds(20));
     	nominatedExit->trigger();
     	this_thread::sleep_for(chrono::seconds(1));
     	nominatedExit->reset();
-    });*/
+    });
 
-    /*runScenario([&] {
-        cout << "Scenario 2: Arming and leaving the building after 30 seconds" << endl;
-        alarmSystem.armSystem("1234");
+    runScenario([&] {
+    	cout << "Scenario 2: Arming the system but entering the code in more than 20 seconds" << endl;
+        alarmSystem.armSystem('1');
+        this_thread::sleep_for(chrono::seconds(20));
+        alarmSystem.armSystem('2');
+
+        alarmSystem.armSystem('1');
+        alarmSystem.armSystem('2');
+        alarmSystem.armSystem('3');
+        alarmSystem.armSystem('4');
+
+        this_thread::sleep_for(chrono::seconds(20));
+        nominatedExit->trigger();
+        this_thread::sleep_for(chrono::seconds(1));
+        nominatedExit->reset();
+    });
+
+    runScenario([&] {
+        cout << "Scenario 3: Arming and leaving the building after 30 seconds" << endl;
+        alarmSystem.armSystem('1');
+        alarmSystem.armSystem('2');
+        alarmSystem.armSystem('3');
+        alarmSystem.armSystem('4');
         this_thread::sleep_for(chrono::seconds(35));
         nominatedExit->trigger();
         this_thread::sleep_for(chrono::seconds(1));
         nominatedExit->reset();
-    });*/
+    });
 
-    /*runScenario([&] {
-       	cout << "Scenario 3: Arming and leaving the building not through the nominated exit" << endl;
-       	alarmSystem.armSystem("1234");
+    runScenario([&] {
+       	cout << "Scenario 4: Arming and leaving the building not through the nominated exit" << endl;
+        alarmSystem.armSystem('1');
+        alarmSystem.armSystem('2');
+        alarmSystem.armSystem('3');
+        alarmSystem.armSystem('4');
        	this_thread::sleep_for(chrono::seconds(20));
        	entry1->trigger();
        	this_thread::sleep_for(chrono::seconds(1));
        	entry1->reset();
-     });*/
+     });
 
-    /*runScenario([&] {
-        cout << "Scenario 4: Triggering a sensor after arming the system" << endl;
+    runScenario([&] {
+        cout << "Scenario 5: Triggering a sensor after arming the system" << endl;
         //Arming the system and leaving in time
-        alarmSystem.armSystem("1234");
+        alarmSystem.armSystem('1');
+        alarmSystem.armSystem('2');
+        alarmSystem.armSystem('3');
+        alarmSystem.armSystem('4');
         this_thread::sleep_for(chrono::seconds(20));
         nominatedExit->trigger();
         this_thread::sleep_for(chrono::seconds(1));
@@ -77,12 +108,17 @@ int main() {
         entry1->trigger();
         this_thread::sleep_for(chrono::seconds(1));
         entry1->reset();
-    });*/
 
-    /*runScenario([&] {
-        cout << "Scenario 5: Re-entering and disarming" << endl;
+        this_thread::sleep_for(chrono::seconds(10));
+    });
+
+    runScenario([&] {
+        cout << "Scenario 6: Re-entering and disarming" << endl;
         //Arming the system and leaving in time
-        alarmSystem.armSystem("1234");
+        alarmSystem.armSystem('1');
+        alarmSystem.armSystem('2');
+        alarmSystem.armSystem('3');
+        alarmSystem.armSystem('4');
         this_thread::sleep_for(chrono::seconds(20));
         nominatedExit->trigger();
         this_thread::sleep_for(chrono::seconds(1));
@@ -95,13 +131,19 @@ int main() {
         this_thread::sleep_for(chrono::seconds(1));
         nominatedExit->reset();
         this_thread::sleep_for(chrono::seconds(30));
-        alarmSystem.disarmSystem("1234");
-    });*/
+        alarmSystem.disarmSystem('1');
+        alarmSystem.disarmSystem('2');
+        alarmSystem.disarmSystem('3');
+        alarmSystem.disarmSystem('4');
+    });
 
-    /*runScenario([&] {
-    	cout << "Scenario 6: Re-entering the building but not re-entring within 2 minutes" << endl;
+    runScenario([&] {
+    	cout << "Scenario 7: Re-entering the building but not re-entring within 2 minutes" << endl;
         //Arming the system and leaving in time
-        alarmSystem.armSystem("1234");
+        alarmSystem.armSystem('1');
+        alarmSystem.armSystem('2');
+        alarmSystem.armSystem('3');
+        alarmSystem.armSystem('4');
         this_thread::sleep_for(chrono::seconds(20));
         nominatedExit->trigger();
         this_thread::sleep_for(chrono::seconds(1));
@@ -114,12 +156,15 @@ int main() {
         this_thread::sleep_for(chrono::seconds(1));
         nominatedExit->reset();
         this_thread::sleep_for(chrono::seconds(130));
-    });*/
+    });
 
     runScenario([&] {
-    	cout << "Scenario 7: Re-entering the building but not entering the code within 1 minute" << endl;
+    	cout << "Scenario 8: Re-entering the building but not entering the correct code within 1 minute" << endl;
         //Arming the system and leaving in time
-        alarmSystem.armSystem("1234");
+        alarmSystem.armSystem('1');
+        alarmSystem.armSystem('2');
+        alarmSystem.armSystem('3');
+        alarmSystem.armSystem('4');
         this_thread::sleep_for(chrono::seconds(20));
         nominatedExit->trigger();
         this_thread::sleep_for(chrono::seconds(1));
@@ -131,23 +176,47 @@ int main() {
         nominatedExit->trigger();
         this_thread::sleep_for(chrono::seconds(1));
         nominatedExit->reset();
+        this_thread::sleep_for(chrono::seconds(30));
+
+        alarmSystem.disarmSystem('1');
+        alarmSystem.disarmSystem('2');
+        alarmSystem.disarmSystem('3');
+        alarmSystem.disarmSystem('3');
         this_thread::sleep_for(chrono::seconds(60));
+        alarmSystem.disarmSystem('4');
+        alarmSystem.disarmSystem('1');
+        alarmSystem.disarmSystem('2');
+        alarmSystem.disarmSystem('3');
+        alarmSystem.disarmSystem('4');
 
-        alarmSystem.disarmSystem("1234");
-        this_thread::sleep_for(chrono::seconds(70));
     });
 
     runScenario([&] {
-        cout << "Scenario 5: Failing to disarm in time" << endl;
-        alarmSystem.armSystem("1234");
+    	cout << "Scenario 9: Triggering the alarm and leaving it triggered for 5 minutes" << endl;
+        alarmSystem.armSystem('1');
+        alarmSystem.armSystem('2');
+        alarmSystem.armSystem('3');
+        alarmSystem.armSystem('4');
+        this_thread::sleep_for(chrono::seconds(35));
         nominatedExit->trigger();
-        this_thread::sleep_for(chrono::seconds(120));
+        this_thread::sleep_for(chrono::seconds(1));
+        nominatedExit->reset();
+
+        this_thread::sleep_for(chrono::seconds(10));
+
+        nominatedExit->trigger();
+        this_thread::sleep_for(chrono::seconds(1));
+        nominatedExit->reset();
+        this_thread::sleep_for(chrono::seconds(40));
+        alarmSystem.disarmSystem('1');
+        alarmSystem.disarmSystem('2');
+        alarmSystem.disarmSystem('3');
+        alarmSystem.disarmSystem('4');
+
+        this_thread::sleep_for(chrono::seconds(5*60));
     });
 
-    runScenario([&] {
-        cout << "Scenario 6: Entering incorrect disarm code" << endl;
-        alarmSystem.disarmSystem("0000");
-    });
+    cout << "Tests have ended" << endl;
 
     sensorCheckThread.detach();
     alarmSystem.joinTimerThreads();
