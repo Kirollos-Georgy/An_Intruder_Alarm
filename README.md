@@ -1,4 +1,4 @@
-# An_Intruder_Alarm
+# An Intruder Alarm System
 
 Designing a real-time system that detects intrudes and trigger an alarm. The system has sensors, digital code entry board and an alarm which consists of a siren and a strobe.
 
