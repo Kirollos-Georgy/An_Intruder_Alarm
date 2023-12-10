@@ -1,5 +1,8 @@
 #include "cTimer.h"
 
+/*
+ * Initialising the timer
+ */
 cTimer::cTimer(uint32_t sec, uint32_t msec) {
     initial_sec = sec;
     initial_nsec = msec * 1000000;
@@ -42,12 +45,18 @@ void cTimer::setTimerSpec(uint32_t sec, uint32_t nano) {
     timer_settime(timerId, 0, &timerSpec, NULL);
 }
 
+/*
+ * Starting the timer
+ */
 void cTimer::startTimer() {
 	isTimerRunning = true;
 	isTimerExpired = false;
 	timer_settime(timerId, 0, &timerSpec, NULL);
 }
 
+/*
+ * Stopping the timer
+ */
 void cTimer::stopTimer() {
 	isTimerRunning = false;
     timerSpec.it_value.tv_sec = 0;
@@ -58,6 +67,7 @@ void cTimer::stopTimer() {
     timer_settime(timerId, 0, &timerSpec, NULL);
 }
 
+//Waiting on the timer to update the timer flags
 void cTimer::waitTimer() {
 	struct _pulse pulse;
     int rcvid;
@@ -69,26 +79,25 @@ void cTimer::waitTimer() {
     }
 }
 
+/*
+ * Starting the timer in a single shot
+ */
 void cTimer::startSingleShotTimer(uint32_t sec, uint32_t nsec) {
 	isTimerRunning = true;
 	isTimerExpired = false;
     timerSpec.it_value.tv_sec = sec;
     timerSpec.it_value.tv_nsec = nsec;
-    timerSpec.it_interval.tv_sec = 0; // Zero means it's a single-shot timer
+    timerSpec.it_interval.tv_sec = 0;
     timerSpec.it_interval.tv_nsec = 0;
 
     if (timer_settime(timerId, 0, &timerSpec, NULL) == -1) {
         std::cerr << "Timer, Set time error: " << strerror(errno) << std::endl;
-        // Consider throwing an exception or returning an error code here
     }
 }
 
-void cTimer::restartSingleShorTImer() {
-    timerSpec.it_value.tv_sec = initial_sec;
-    timerSpec.it_value.tv_nsec = initial_nsec;
-    timer_settime(timerId, 0, &timerSpec, NULL);
-}
-
+/*
+ * Checking if the timer has expired
+ */
 bool cTimer::isExpired() {
     if (isTimerExpired) {
         isTimerExpired = false;
@@ -97,6 +106,9 @@ bool cTimer::isExpired() {
     return false;
 }
 
+/*
+ * Checking if the timer is running
+ */
 bool cTimer::isRunning() {
     return isTimerRunning;
 }

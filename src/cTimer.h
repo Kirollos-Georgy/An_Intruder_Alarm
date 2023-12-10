@@ -52,6 +52,9 @@ public:
     bool isExpired();
     bool isRunning();
 
+    std::thread timerThread;
+    void timerThreadFunction();
+
     virtual ~cTimer();
 };
 
