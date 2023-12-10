@@ -20,41 +20,54 @@ private:
     const int MAXIMUM_DURATION_FOR_ENTERING_THE_CODE = 20;
     const int SIREN_DURATION = 5*60;
 
+    //Variable for storing partial code for setting and resetting
     string partialCode;
 
+    //Variable to store the full code after setting the alarm
+    string disarmCode;
+
+    //Flags for controlling the operations of the alarm functions
     bool isArmed;
     bool alarmTriggered;
     bool leftBuildingAfterReset;
     bool requiresAuthorityToDisarm;
     bool disarmTimerStarted;
+    bool stopSiren;
 
-    string disarmCode;
+    //Storing pointers to all the sensors
     vector<Sensor*> sensors;
 
+    //Creating a timer for allowing the user to exit after arming the system
     cTimer settingAlarmTimer;
     uint32_t settingAlarmTimerSec = SETTING_ALARM_TIME;
     uint32_t settingAlarmTimerMsec = 0;
 
+    //Creating a timer for triggering the alarm after triggering the sensor
     cTimer triggeringAlarmTimer;
     uint32_t triggeringAlarmTimerSec = TIME_BETWEEN_DETECTING_AN_INTRUDER_AND_TRIGGERING_ALARM;
     uint32_t triggeringAlarmTimerMsec = 0;
 
+    //Creating a timer to allow the user to reenter the building and disarm the alarm
     cTimer reentryTimer;
     uint32_t reentryTimerSec = TIME_ALLOWED_FOR_REENTRY;
     uint32_t reentryTimerMsec = 0;
 
+    //Creating a timer to allow the user to disarm the system by entering the correct code in the specified time
     cTimer disarmTimer;
     uint32_t disarmTimerSec = RESETTING_ALARM_TIME;
     uint32_t disarmTimerMsec = 0;
 
+    //Creating a timer to control the time the code is fully entered
     cTimer codeEntryTimer;
     uint32_t codeEntryTimerSec = MAXIMUM_DURATION_FOR_ENTERING_THE_CODE;
     uint32_t codeEntryTimerMsec = 0;
 
+    //Timer for controlling the siren
     cTimer sirenDurationTimer;
     uint32_t sirenDurationTimerSec = SIREN_DURATION;
     uint32_t sirenDurationTimerMsec = 0;
 
+    //Threads to manage each timer independently
     thread settingAlarmThread;
     thread triggeringAlarmThread;
     thread reentryTimerThread;
@@ -70,6 +83,7 @@ public:
 
     void checkSensors();
     void triggerAlarm();
+    void turnOffAlarm();
 
     void addSensor(Sensor* sensor);
 
